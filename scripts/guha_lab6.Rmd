@@ -1,0 +1,116 @@
+---
+title: "Lab 6"
+author: "Anwesha Guha"
+date: "10/22/2020"
+output: 
+  html_document:
+    highlight: tango
+    theme: yeti
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE,
+                      error = FALSE,
+                      message = FALSE,
+                      fig.width = 6.5,
+                      fig.height = 8)
+
+library(rio)
+library(here)
+library(tidyverse)
+library(janitor)
+```
+
+## ECLS-K Data
+
+See below for for term 1 and term 2 math score data by school type and faceted by race.
+```{r}
+# list.files(here("data"))
+
+eclsk <- import(here("data", "ecls-k_samp.sav"))
+eclsk1 <- eclsk %>% 
+  clean_names() %>% 
+  characterize() %>% 
+  # as_tibble()
+  filter(ethnic == "BLACK OR AFRICAN AMERICAN, NON-HISPANIC" |
+           ethnic == "HISPANIC, RACE NOT SPECIFIED" |
+           ethnic == "HISPANIC, RACE SPECIFIED" |
+           ethnic == "WHITE, NON-HISPANIC")
+
+# unique(eclsk$ethnic)
+# eclsk %>% 
+#  count(ethnic)
+
+ggplot(eclsk1, aes(t1mscale, t2mscale)) +
+  geom_point() +
+  geom_smooth(method = "lm", aes(color = school_type)) +
+  facet_wrap(~ethnic)
+```
+
+```{r}
+
+t1mean <-mean(eclsk1$t1mscale, na.rm = TRUE)
+t1sd <-sd(eclsk1$t1mscale, na.rm = TRUE)
+
+t2mean <-mean(eclsk1$t2mscale, na.rm = TRUE)
+t2sd <-sd(eclsk1$t2mscale, na.rm = TRUE)
+
+t_dif <- t2mean - t1mean
+```
+
+For T1 Math IRT Scale Score, the mean is `r round(t1mean, 1)` and standard deviation is `r round(t1sd, 1)`.
+This average score rises to `r round(t2mean, 1)` (with standard deviation of `r round(t2sd, 1)`) in T2, showing an average gain of `r round(t_dif, 1)` points.
+
+## Loading Data
+
+Follow along below to learn how and why we load data.
+
+### How do we do it?
+
+In your R data analyses, the first and fundamental step is obvious: know how to load your data!
+
+For the sake of reproducibility (which I will discuss later), start by saving your data in the data folder of the R project you are working in. I will be using *ecls-k_samp.sav*, so you can follow along or use a different dataset of your choosing.
+
+There are a few packages you can load to make loading your data a bit easier. Start with the ones below.
+
+```{r echo = TRUE, eval = FALSE}
+library(rio) #import data
+library(here) #locate data
+library(tidyverse) #manipulate data
+library(janitor) #clean data
+```
+
+If you don't have these on your machine or receive an error, you might not have the packages installed. Use the following code to install the packages.
+
+```{r echo = TRUE, eval = FALSE}
+install.packages("rio") #include the name of the package you need to install in quotations here
+```
+
+You can now check to see if you have your data where you need it.
+```{r echo = TRUE}
+list.files(here("data"))
+```
+
+Great! The *ecls-k_samp.sav* is in our data folder. Let's bring it into our workspace using the **import()** function. The Rio package can help you import (or export!) many types of files. The full list can be found [here](https://cran.r-project.org/web/packages/rio/readme/README.html).
+
+```{r echo = TRUE, eval = FALSE}
+eclsk <- import(here("data", "ecls-k_samp.sav"))
+```
+
+Now you're good to go! Going forward, you can manipulate the data in the ways that make sense for you. You can rewrite the dataset with your changes, or save it into a new one if you want to keep the original intact, as I have done here: 
+```{r echo = TRUE, eval = FALSE}
+eclsk1 <- eclsk %>% 
+  clean_names() %>% 
+  characterize()
+```
+
+### Why do we do it?
+
+While it might seem easier just to save your data on your machine and link your analysis to it, there are a few advantages to making your research and code reproducible:
+
+* With the data and code easily available, it makes it easier for you and others to check your research. It promotes a culture of transparency and accountability.
+* Reproducible research builds sets a foundation where it is easier to extend and build from the research already there. Others can learn from, question, and continue the work you have done.
+* Ultimately, reproducibility builds community: it opens doors to make future research more efficient and effective.
+
+While it may not always be possible to have everything open-source, especially if you are working with sensitive data, loading data in a folder that everyone can access using code that everyone can follow is good practice for having your work and data tell a story all on its own. 
